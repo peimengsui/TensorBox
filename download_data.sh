@@ -6,17 +6,18 @@ cd $DIR
 
 echo "Downloading..."
 
-mkdir -p data && cd data
-wget --continue http://russellsstewart.com/s/tensorbox/inception_v1.ckpt
+#mkdir -p data && cd data
+cd data
+#wget --continue http://russellsstewart.com/s/tensorbox/inception_v1.ckpt
 wget --continue http://download.tensorflow.org/models/resnet_v1_101_2016_08_28.tar.gz
 if [[ "$2" == '--load_experimental' ]]; then
     wget --continue http://download.tensorflow.org/models/inception_resnet_v2_2016_08_30.tar.gz
     wget --continue http://download.tensorflow.org/models/mobilenet_v1_1.0_224_2017_06_14.tar.gz
 fi
 
-mkdir -p overfeat_rezoom && cd overfeat_rezoom
-wget --continue http://russellsstewart.com/s/tensorbox/overfeat_rezoom/save.ckpt-150000v2
-cd ..
+#mkdir -p overfeat_rezoom && cd overfeat_rezoom
+#wget --continue http://russellsstewart.com/s/tensorbox/overfeat_rezoom/save.ckpt-150000v2
+#cd ..
 echo "Extracting..."
 tar xf resnet_v1_101_2016_08_28.tar.gz
 if [[ "$2" == '--load_experimental' ]]; then
