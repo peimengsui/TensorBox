@@ -93,7 +93,6 @@ def rezoom(H, pred_boxes, early_feat, early_feat_channels, w_offsets, h_offsets)
     Where each letter indexes into the feature map with bilinear interpolation
     '''
 
-
     grid_size = H['grid_width'] * H['grid_height']
     outer_size = grid_size * H['batch_size']
     indices = []
@@ -124,14 +123,14 @@ def build_forward(H, x, phase, reuse):
     '''
     Construct the forward model
     '''
-
     grid_size = H['grid_width'] * H['grid_height']
     outer_size = grid_size * H['batch_size']
     input_mean = 117.
     x -= input_mean
-    cnn, early_feat = googlenet_load.model(x, H, reuse)
-    early_feat_channels = H['early_feat_channels']
-    early_feat = early_feat[:, :, :, :early_feat_channels]
+    #cnn, early_feat = googlenet_load.model(x, H, reuse)
+    cnn = googlenet_load.model(x, H, reuse)
+    #early_feat_channels = H['early_feat_channels']
+    #early_feat = early_feat[:, :, :, :early_feat_channels]
 
     if H['deconv']:
         size = 3
@@ -192,7 +191,6 @@ def build_forward(H, x, phase, reuse):
         pred_confidences_squash = tf.nn.softmax(pred_logits_squash)
         pred_confidences = tf.reshape(pred_confidences_squash,
                                       [outer_size, H['rnn_len'], H['num_classes']])
-
         if H['use_rezoom']:
             pred_confs_deltas = []
             pred_boxes_deltas = []
@@ -310,7 +308,6 @@ def build(H, q):
     '''
     arch = H
     solver = H["solver"]
-
     #os.environ['CUDA_VISIBLE_DEVICES'] = str(solver.get('gpu', ''))
 
     #gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8)
@@ -395,7 +392,6 @@ def build(H, q):
                 img_path = os.path.join(H['save_dir'], '%s_%s.jpg' % ((np_global_step / H['logging']['display_iter']) % num_images, pred_or_true))
                 misc.imsave(img_path, merged)
                 return merged
-
             pred_log_img = tf.py_func(log_image,
                                       [test_image, test_pred_confidences, test_pred_boxes, global_step, 'pred'],
                                       [tf.float32])
@@ -415,7 +411,6 @@ def train(H, test_images):
     '''
     Setup computation graph, run 2 prefetch data threads, and then run the main loop
     '''
-
     if not os.path.exists(H['save_dir']): os.makedirs(H['save_dir'])
 
     ckpt_file = H['save_dir'] + '/save.ckpt'
@@ -434,7 +429,8 @@ def train(H, test_images):
         dtypes = [tf.float32, tf.float32, tf.float32]
         grid_size = H['grid_width'] * H['grid_height']
         shapes = (
-            [H['image_height'], H['image_width'], 3],
+            [H['image_height'], H['image_width'], 1],
+            #[H['image_height'], H['image_width'], 1],
             [grid_size, H['rnn_len'], H['num_classes']],
             [grid_size, H['rnn_len'], 4],
             )
@@ -448,10 +444,8 @@ def train(H, test_images):
     def thread_loop(sess, enqueue_op, phase, gen):
         for d in gen:
             sess.run(enqueue_op[phase], feed_dict=make_feed(d))
-
     (config, loss, accuracy, summary_op, train_op,
      smooth_op, global_step, learning_rate) = build(H, q)
-
     saver = tf.train.Saver(max_to_keep=None)
     writer = tf.summary.FileWriter(
         logdir=H['save_dir'],
@@ -479,6 +473,9 @@ def train(H, test_images):
             saver.restore(sess, weights_str)
         elif H['slim_basename'] == 'MobilenetV1':
             saver.restore(sess, H['slim_ckpt'])
+        elif H['slim_basename'] == 'Andreanet':
+            saver = tf.train.import_meta_graph('/mnt/home/speimeng/dev/residual_classifier_2classes.ckpt.meta')
+            saver.restore(sess, '/mnt/home/speimeng/dev/residual_classifier_2classes.ckpt')
         else :
             gvars = [x for x in tf.global_variables() if x.name.startswith(H['slim_basename']) and H['solver']['opt'] not in x.name]
             gvars = [x for x in gvars if not x.name.startswith("{}/AuxLogits".format(H['slim_basename']))]

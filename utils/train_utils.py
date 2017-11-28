@@ -50,6 +50,7 @@ def load_idl_tf(idlfile, H, jitter):
         random.shuffle(annos)
         for anno in annos:
             try:
+                """
                 if 'grayscale' in H and 'grayscale_prob' in H:
                     I = imread(anno.imageName, mode = 'RGB' if random.random() < H['grayscale_prob'] else 'L')
                     if len(I.shape) < 3:
@@ -58,6 +59,9 @@ def load_idl_tf(idlfile, H, jitter):
                     if len(I.shape) < 3:
                         continue
                     I = imread(anno.imageName, mode = 'RGB')
+                """
+                I = np.expand_dims(imread(anno.imageName, mode = 'L'), axis=2)
+                #I = cv2.cvtColor(I, cv2.COLOR_GRAY2RGB)
                 if I.shape[0] != H["image_height"] or I.shape[1] != H["image_width"]:
                     if epoch == 0:
                         anno = rescale_boxes(I.shape, anno, H["image_height"], H["image_width"])
