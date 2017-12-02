@@ -41,29 +41,34 @@ def andreanet(images, num_classes=2, is_training=False,
   with tf.variable_scope(scope, 'AndreaNet', [images], reuse=reuse):
     net = end_points['conv1'] = slim.conv2d(images, 32, [3, 3], scope='conv1')
     net = end_points['conv2'] = slim.conv2d(net, 32, [3, 3], scope='conv2')
-    net = end_points['pool1'] = slim.max_pool2d(net, [2, 2], 2, scope='pool1')
+    net = end_points['pool1'] = slim.max_pool2d(net, [4, 4], 4, scope='pool1')
     net = end_points['dropout1'] = slim.dropout(
         net, 0.25, is_training=is_training, scope='dropout1')
     net = end_points['conv3'] = slim.conv2d(net, 64, [3, 3], scope='conv3')
     net = end_points['conv4'] = slim.conv2d(net, 64, [3, 3], scope='conv4')
-    net = end_points['pool2'] = slim.max_pool2d(net, [2, 2], 2, scope='pool2')
+    net = end_points['pool2'] = slim.max_pool2d(net, [4, 4], 4, scope='pool2')
     net = end_points['dropout2'] = slim.dropout(
         net, 0.25, is_training=is_training, scope='dropout2')
+    net = end_points['dense1'] = slim.conv2d(net, 256, [3, 3], scope='dense1')
+    net = end_points['dropout3'] = slim.dropout(
+        net, dropout_keep_prob, is_training=is_training, scope='dropout3')
+    net = end_points['dense2'] = slim.conv2d(net, 1, [1, 1], scope='dense2')
     net = slim.flatten(net)
     end_points['Flatten'] = net
 
-    net = end_points['fc3'] = slim.fully_connected(net, 512, scope='fc3')
-    if not num_classes:
-      return net, end_points
-    net = end_points['dropout3'] = slim.dropout(
-        net, dropout_keep_prob, is_training=is_training, scope='dropout3')
-    logits = end_points['Logits'] = slim.fully_connected(
-        net, num_classes, activation_fn=None, scope='fc4')
+    # net = end_points['fc3'] = slim.fully_connected(net, 512, scope='fc3')
+    # if not num_classes:
+    #   return net, end_points
+    # net = end_points['dropout3'] = slim.dropout(
+    #     net, dropout_keep_prob, is_training=is_training, scope='dropout3')
+    # logits = end_points['Logits'] = slim.fully_connected(
+    #     net, num_classes, activation_fn=None, scope='fc4')
 
-  end_points['Predictions'] = prediction_fn(logits, scope='Predictions')
+  #end_points['Predictions'] = prediction_fn(logits, scope='Predictions')
 
-  return logits, end_points
-andreanet.default_image_size = 50
+  #return logits, end_points
+  return end_points
+andreanet.default_image_size = 48
 
 
 def andreanet_arg_scope(weight_decay=0.0):
